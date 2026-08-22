@@ -1,9 +1,9 @@
-# Status Watcher
+# Is It Down?
 
 *Is it me or is it down?* Watch the status pages of services you depend on
 from a detective icon in the Omarchy bar.
 
-![Status Watcher](preview.png)
+![Is It Down?](preview.png)
 
 ## Features
 
@@ -25,8 +25,8 @@ from a detective icon in the Omarchy bar.
 ## Install
 
 ```sh
-omarchy plugin add https://github.com/Bottelet/omarchy-status-watcher.git --enable
-omarchy bar put bottelet.status-watcher --after omarchy.weather
+omarchy plugin add https://github.com/Bottelet/omarchy-is-it-down.git --enable
+omarchy bar put bottelet.is-it-down --after omarchy.weather
 ```
 
 ## Usage
@@ -44,7 +44,7 @@ Any Statuspage-powered site works without code changes: add a
 `~/.config/omarchy/shell.json`:
 
 ```json
-{ "id": "bottelet.status-watcher",
+{ "id": "bottelet.is-it-down",
   "customServices": [
     { "key": "tailscale", "name": "Tailscale",
       "api": "https://status.tailscale.com/api/v2/summary.json" }
@@ -57,7 +57,7 @@ live from the services themselves, so new ones show up automatically.
 ## Remove
 
 ```sh
-omarchy plugin remove bottelet.status-watcher
+omarchy plugin remove bottelet.is-it-down
 ```
 
 Settings live in this plugin's own entry in `~/.config/omarchy/shell.json`;

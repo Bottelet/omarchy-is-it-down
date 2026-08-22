@@ -7,8 +7,8 @@ import "Model.js" as Model
 
 Panel {
   id: root
-  moduleName: "bottelet.status-watcher"
-  ipcTarget: "bottelet.status-watcher"
+  moduleName: "bottelet.is-it-down"
+  ipcTarget: "bottelet.is-it-down"
   manageIpc: false
 
   property var anchorItem: null
@@ -26,7 +26,7 @@ Panel {
 
   // Status colors. Red follows the theme's urgent color; green/yellow have no
   // theme role, so they ship with defaults that can be overridden per widget
-  // via `omarchy bar set bottelet.status-watcher okColor "#a6e3a1"` etc.
+  // via `omarchy bar set bottelet.is-it-down okColor "#a6e3a1"` etc.
   readonly property color okColor: settings && settings.okColor ? settings.okColor : "#98c379"
   readonly property color warnColor: settings && settings.warnColor ? settings.warnColor : "#e5c07b"
   readonly property color downColor: settings && settings.downColor ? settings.downColor : Color.urgent
@@ -84,7 +84,7 @@ Panel {
   readonly property color worstColor: colorForSeverity(worstSeverity)
 
   // Refresh cadence in minutes; override via
-  // `omarchy bar set bottelet.status-watcher refreshMinutes 10`.
+  // `omarchy bar set bottelet.is-it-down refreshMinutes 10`.
   readonly property int refreshMinutes: Math.max(1, parseInt(setting("refreshMinutes", 3), 10) || 3)
 
   signal refreshRequested()

@@ -4,7 +4,7 @@ import qs.Ui
 
 BarWidget {
   id: root
-  moduleName: "bottelet.status-watcher"
+  moduleName: "bottelet.is-it-down"
 
   // Mirrored off the panel so the bar icon can tint and badge itself.
   readonly property int issueCount: panelLoader.item ? panelLoader.item.issueCount : 0
