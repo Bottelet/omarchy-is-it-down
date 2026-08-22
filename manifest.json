@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "bottelet.status-watcher",
   "name": "Status Watcher",
-  "version": "1.2.0",
+  "version": "1.0.0",
   "author": "Casper Bottelet",
   "license": "MIT",
   "description": "Is it me or is it down? Watches the status pages of services you depend on (GitHub, AWS, Cloudflare, npm, ...) from the bar.",
