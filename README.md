@@ -19,7 +19,8 @@ from a detective icon in the Omarchy bar.
 
 ## Requirements
 
-- Omarchy (Quattro shell) with a bar. Uses only stock tools (`curl`, `iconv`).
+- Omarchy (Quattro shell) with a bar. Uses only stock tools (`curl`, `jq`,
+  `iconv`).
 
 ## Install
 
@@ -38,8 +39,20 @@ omarchy bar put bottelet.status-watcher --after omarchy.weather
 
 ## Add a service
 
-Any Statuspage-powered site works: add one entry to `registry()` in
-`Model.js`, then enable it under ⚙.
+Any Statuspage-powered site works without code changes: add a
+`customServices` entry to the plugin's settings in
+`~/.config/omarchy/shell.json`:
+
+```json
+{ "id": "bottelet.status-watcher",
+  "customServices": [
+    { "key": "tailscale", "name": "Tailscale",
+      "api": "https://status.tailscale.com/api/v2/summary.json" }
+  ] }
+```
+
+It appears in ⚙ like any built-in. Components and AWS regions are discovered
+live from the services themselves, so new ones show up automatically.
 
 ## Remove
 

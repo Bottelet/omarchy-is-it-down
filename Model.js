@@ -54,11 +54,13 @@ function defaultKeys() {
 // undefined, or blank string) means the default set, so a fresh install works
 // without touching settings; an explicit array is honored as-is, including
 // empty. Comma-separated strings are accepted for the CLI path.
-function enabledServices(selectedKeys) {
-  var all = registry()
+function enabledServices(selectedKeys, customServices) {
+  var all = fullRegistry(customServices)
+  var defaults = []
+  for (var d = 0; d < all.length; d++) if (all[d].defaultEnabled) defaults.push(all[d].key)
   var keys
-  if (selectedKeys === null || selectedKeys === undefined) keys = defaultKeys()
-  else if (typeof selectedKeys === "string") keys = normalizeList(selectedKeys).length ? normalizeList(selectedKeys) : defaultKeys()
+  if (selectedKeys === null || selectedKeys === undefined) keys = defaults
+  else if (typeof selectedKeys === "string") keys = normalizeList(selectedKeys).length ? normalizeList(selectedKeys) : defaults
   else keys = selectedKeys
   var out = []
   for (var i = 0; i < all.length; i++) {
@@ -79,8 +81,38 @@ function ignoreListFor(settings, serviceKey) {
   return out
 }
 
-function serviceByKey(key) {
+// User-defined services from settings (`customServices` in the widget's
+// shell.json entry): [{key, name, api, page}] pointing at any Statuspage
+// /api/v2/summary.json. Lets new services be added without code changes.
+function normalizeCustomServices(value) {
+  var list = Array.isArray(value) ? value : []
+  var out = []
+  var builtin = {}
   var all = registry()
+  for (var b = 0; b < all.length; b++) builtin[all[b].key] = true
+  for (var i = 0; i < list.length; i++) {
+    var e = list[i]
+    if (!e || !e.key || !e.api) continue
+    var key = String(e.key).toLowerCase()
+    if (builtin[key]) continue
+    out.push({
+      key: key,
+      name: String(e.name || e.key),
+      type: "statuspage",
+      defaultEnabled: e.defaultEnabled !== false,
+      api: String(e.api),
+      page: String(e.page || e.api).replace(/\/api\/v2\/.*$/, "")
+    })
+  }
+  return out
+}
+
+function fullRegistry(customServices) {
+  return registry().concat(normalizeCustomServices(customServices))
+}
+
+function serviceByKey(key, customServices) {
+  var all = fullRegistry(customServices)
   for (var i = 0; i < all.length; i++) {
     if (all[i].key === key) return all[i]
   }
@@ -234,7 +266,7 @@ function awsRegions() {
 // catalog; statuspage pages list the components seen in the last fetch.
 // Ignored entries that match nothing current are kept as extra rows so they
 // can always be re-enabled.
-function settingsCatalog(service, result, ignoreList) {
+function settingsCatalog(service, result, ignoreList, awsLiveRegionCodes) {
   var ignore = normalizeList(ignoreList)
   var rows = []
   var known = {}
@@ -253,6 +285,15 @@ function settingsCatalog(service, result, ignoreList) {
         muteKeys: [r.code, nameKey],
         enabled: !(has(r.code) || has(nameKey))
       })
+    }
+    // Regions discovered live (from ip-ranges.amazonaws.com) that the
+    // curated name map doesn't know yet — new regions appear here
+    // automatically, just without a friendly name.
+    var live = normalizeList(awsLiveRegionCodes).sort()
+    for (var a = 0; a < live.length; a++) {
+      if (known[live[a]]) continue
+      known[live[a]] = true
+      rows.push({ label: live[a], desc: "", muteKeys: [live[a]], enabled: !has(live[a]) })
     }
   } else {
     var catalog = result && result.catalog ? result.catalog : []
@@ -397,6 +438,8 @@ if (typeof module !== "undefined") {
     SEV_MAJOR: SEV_MAJOR,
     registry: registry,
     defaultKeys: defaultKeys,
+    normalizeCustomServices: normalizeCustomServices,
+    fullRegistry: fullRegistry,
     enabledServices: enabledServices,
     serviceByKey: serviceByKey,
     fetchCommand: fetchCommand,

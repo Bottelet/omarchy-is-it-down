@@ -31,19 +31,24 @@ Panel {
   readonly property color warnColor: settings && settings.warnColor ? settings.warnColor : "#e5c07b"
   readonly property color downColor: settings && settings.downColor ? settings.downColor : Color.urgent
 
-  readonly property var services: Model.enabledServices(setting("services", null))
+  readonly property var customServices: setting("customServices", [])
+  readonly property var services: Model.enabledServices(setting("services", null), customServices)
   readonly property var enabledKeys: services.map(function(s) { return s.key })
+
+  // Region codes discovered live from AWS's public ip-ranges feed, so new
+  // regions show up in settings without a plugin update.
+  property var awsLiveRegionCodes: []
   property var results: ({})
   property bool settingsMode: false
 
   // "" shows the service list page; a service key shows that service's
   // regions/components drill-down page.
   property string settingsServiceKey: ""
-  readonly property var settingsService: settingsServiceKey ? Model.serviceByKey(settingsServiceKey) : null
+  readonly property var settingsService: settingsServiceKey ? Model.serviceByKey(settingsServiceKey, customServices) : null
   property string settingsFilter: ""
   readonly property var settingsRows: settingsService
     ? Model.filterCatalog(
-        Model.settingsCatalog(settingsService, results[settingsServiceKey] || null, ignoreFor(settingsServiceKey)),
+        Model.settingsCatalog(settingsService, results[settingsServiceKey] || null, ignoreFor(settingsServiceKey), awsLiveRegionCodes),
         settingsFilter, 60)
     : ({ rows: [], hidden: 0 })
 
@@ -277,6 +282,30 @@ Panel {
     running: true
     repeat: true
     onTriggered: root.refreshAll()
+  }
+
+  // One-shot region discovery (regions change rarely); retried by the timer
+  // below until it succeeds, e.g. when the shell starts before the network.
+  Process {
+    id: awsRegionsProc
+    command: ["sh", "-c", "curl -fsS --max-time 10 https://ip-ranges.amazonaws.com/ip-ranges.json | jq -c '[.prefixes[].region | ascii_downcase] | unique'"]
+    stdout: StdioCollector {
+      waitForEnd: true
+      onStreamFinished: {
+        try {
+          var codes = JSON.parse(String(text || "").trim())
+          if (Array.isArray(codes) && codes.length) root.awsLiveRegionCodes = codes
+        } catch (e) { /* retried by the timer */ }
+      }
+    }
+    Component.onCompleted: running = true
+  }
+
+  Timer {
+    interval: 60000
+    repeat: true
+    running: root.awsLiveRegionCodes.length === 0
+    onTriggered: if (!awsRegionsProc.running) awsRegionsProc.running = true
   }
 
   IpcHandler {
@@ -712,7 +741,7 @@ Panel {
             }
 
             Repeater {
-              model: Model.registry()
+              model: Model.fullRegistry(root.customServices)
 
               Item {
                 id: serviceRow
