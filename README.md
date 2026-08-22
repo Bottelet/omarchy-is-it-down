@@ -31,8 +31,8 @@ omarchy bar put bottelet.status-watcher --after omarchy.weather
 ## Usage
 
 - Left-click the detective to open the panel; middle-click to force a refresh.
-- Click a tab to see that service; middle-click a tab to open its real status
-  page in the browser.
+- Click a tab to see that service; the "Open … status page" link at the bottom
+  of the card opens the real status page in your browser.
 - Hover a component row and click ✕ to mute it. Manage everything under ⚙.
 - Unreachable status pages show "maybe it's you" and don't badge the icon.
 

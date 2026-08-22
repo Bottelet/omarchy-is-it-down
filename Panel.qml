@@ -470,14 +470,9 @@ Panel {
                   anchors.fill: parent
                   hoverEnabled: true
                   cursorShape: Qt.PointingHandCursor
-                  acceptedButtons: Qt.LeftButton | Qt.MiddleButton
-                  onClicked: function(mouse) {
-                    if (mouse.button === Qt.MiddleButton) {
-                      root.openPage(tabPill.modelData)
-                    } else {
-                      root.userPickedTab = true
-                      root.currentIndex = tabPill.index
-                    }
+                  onClicked: {
+                    root.userPickedTab = true
+                    root.currentIndex = tabPill.index
                   }
                 }
               }
@@ -697,7 +692,7 @@ Panel {
           Text {
             visible: !root.settingsMode
             width: parent.width
-            text: "middle-click a tab to open its page · refreshes every " + root.refreshMinutes + " min"
+            text: "refreshes every " + root.refreshMinutes + " min"
             color: root.dim
             font.family: root.fontName
             font.pixelSize: Style.font.caption
