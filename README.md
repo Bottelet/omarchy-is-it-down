@@ -131,6 +131,23 @@ omarchy-shell shell rescanPlugins
 Tip: to check whether a service uses Statuspage, try
 `curl https://<status-host>/api/v2/status.json`.
 
+## Remove
+
+```bash
+omarchy plugin remove bottelet.status-watcher
+```
+
+This deletes the plugin folder and drops it from the bar. To also clear its
+saved settings, remove the `bottelet.status-watcher` entry from
+`~/.config/omarchy/shell.json`. The plugin never touches any other
+configuration.
+
+## Dependencies
+
+Only tools present on a stock Omarchy install: `curl` for fetching status
+APIs and `iconv` (glibc) for the UTF-16 AWS feed. No extra packages, no
+background processes beyond the shared Omarchy shell.
+
 ## Notes
 
 - Fetch failures are shown as "Unreachable — maybe it's you" and deliberately
