@@ -905,6 +905,7 @@ Panel {
                 text: root.settingsService
                   ? root.settingsService.name.toUpperCase() + (root.settingsService.type === "aws" ? " · REGIONS" : " · COMPONENTS")
                   : ""
+                textFormat: Text.PlainText
                 color: Qt.darker(root.fg, 1.2)
                 font.family: root.fontName
                 font.pixelSize: Style.font.caption
