@@ -178,8 +178,17 @@ Panel {
     if (opened && !userPickedTab) focusFirstIssue()
   }
 
+  // Quote the URL and require an http(s) scheme: service.page comes from user
+  // config (customServices), so a raw single quote would otherwise break out
+  // of the shell line, and a non-http scheme could hand xdg-open a file:// or
+  // other handler target.
+  function shArg(value) {
+    return "'" + String(value).replace(/'/g, "'\\''") + "'"
+  }
+
   function openPage(service) {
-    if (service && root.bar) root.bar.run("xdg-open '" + service.page + "'")
+    if (service && service.page && root.bar && /^https?:\/\//i.test(String(service.page)))
+      root.bar.run("xdg-open " + shArg(service.page))
   }
 
   // While the panel is open and the user hasn't picked a tab themselves,
@@ -288,7 +297,7 @@ Panel {
   // below until it succeeds, e.g. when the shell starts before the network.
   Process {
     id: awsRegionsProc
-    command: ["sh", "-c", "curl -fsS --max-time 10 https://ip-ranges.amazonaws.com/ip-ranges.json | jq -c '[.prefixes[].region | ascii_downcase] | unique'"]
+    command: ["sh", "-c", "curl -fsS --max-filesize 20971520 --max-time 10 https://ip-ranges.amazonaws.com/ip-ranges.json | head -c 20971520 | jq -c '[.prefixes[].region | ascii_downcase] | unique'"]
     stdout: StdioCollector {
       waitForEnd: true
       onStreamFinished: {
@@ -487,6 +496,7 @@ Panel {
                   }
                   Text {
                     text: tabPill.modelData.name
+                    textFormat: Text.PlainText
                     color: tabPill.selected ? Style.hoverStateColor(root.fg, Color.accent) : root.fg
                     font.family: root.fontName
                     font.pixelSize: Style.font.bodySmall
@@ -542,6 +552,7 @@ Panel {
                   anchors.rightMargin: Style.space(8)
                   anchors.verticalCenter: parent.verticalCenter
                   text: root.currentResult ? root.currentResult.headline : "Checking…"
+                  textFormat: Text.PlainText
                   color: root.fg
                   font.family: root.fontName
                   font.pixelSize: Style.font.title
@@ -566,6 +577,7 @@ Panel {
                 visible: !!(root.currentResult && root.currentResult.detail)
                 width: parent.width
                 text: root.currentResult ? root.currentResult.detail : ""
+                textFormat: Text.PlainText
                 color: root.dim
                 font.family: root.fontName
                 font.pixelSize: Style.font.bodySmall
@@ -613,6 +625,7 @@ Panel {
                     anchors.rightMargin: Style.space(8)
                     anchors.verticalCenter: parent.verticalCenter
                     text: itemRow.modelData.name
+                    textFormat: Text.PlainText
                     color: root.fg
                     font.family: root.fontName
                     font.pixelSize: Style.font.body
@@ -625,6 +638,7 @@ Panel {
                     anchors.rightMargin: Style.space(6)
                     anchors.verticalCenter: parent.verticalCenter
                     text: itemRow.modelData.status
+                    textFormat: Text.PlainText
                     color: itemRow.modelData.severity === Model.SEV_OK ? root.dim : root.colorForSeverity(itemRow.modelData.severity)
                     font.family: root.fontName
                     font.pixelSize: Style.font.bodySmall
@@ -700,6 +714,7 @@ Panel {
                   Text {
                     id: openText
                     text: root.currentService ? "Open " + root.currentService.name + " status page" : ""
+                    textFormat: Text.PlainText
                     color: openArea.containsMouse ? Color.accent : root.dim
                     font.family: root.fontName
                     font.pixelSize: Style.font.bodySmall
@@ -773,6 +788,7 @@ Panel {
 
                   Text {
                     text: serviceRow.modelData.name
+                    textFormat: Text.PlainText
                     // Watched services read brighter; toggled-off ones recede.
                     color: serviceRow.on ? root.fg : root.dim
                     opacity: serviceRow.on ? 1.0 : 0.7
@@ -958,6 +974,7 @@ Panel {
 
                   Text {
                     text: catalogRow.modelData.label
+                    textFormat: Text.PlainText
                     color: catalogRow.modelData.enabled ? root.fg : root.dim
                     opacity: catalogRow.modelData.enabled ? 1.0 : 0.7
                     font.family: root.fontName
@@ -968,6 +985,7 @@ Panel {
                   Text {
                     visible: text !== ""
                     text: catalogRow.modelData.desc ? "(" + catalogRow.modelData.desc + ")" : ""
+                    textFormat: Text.PlainText
                     color: root.dim
                     opacity: catalogRow.modelData.enabled ? 1.0 : 0.7
                     font.family: root.fontName

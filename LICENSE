@@ -19,3 +19,27 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+---
+
+External dependencies and services
+==================================
+
+Command-line tools (all ship with a stock Omarchy install): curl, jq, iconv,
+head (coreutils), sh.
+
+Network services contacted over HTTPS (read-only GET of public status data;
+no credentials required):
+  - Atlassian Statuspage sites for the enabled services, e.g.
+    githubstatus.com, cloudflarestatus.com, status.npmjs.org, and any
+    user-configured custom service endpoint
+  - AWS Health public feed   https://health.aws.amazon.com
+  - AWS IP ranges            https://ip-ranges.amazonaws.com  (region discovery)
+
+User-configured "custom services" cause the plugin to contact whatever
+endpoint the user supplies; no other hosts are contacted.
+
+Privilege boundary: the plugin makes outbound HTTPS requests, opens status-page
+URLs in the user's browser via xdg-open, and persists settings only to its own
+entry in ~/.config/omarchy/shell.json. It does not modify any other user
+configuration.

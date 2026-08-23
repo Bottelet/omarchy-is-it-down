@@ -119,11 +119,27 @@ function serviceByKey(key, customServices) {
   return null
 }
 
+// Cap on bytes buffered from any single fetch. Custom services point at
+// arbitrary hosts, so a hostile endpoint could otherwise stream without end
+// into StdioCollector (unbounded memory). curl --max-filesize rejects an
+// oversized Content-Length up front; head -c bounds the chunked/no-length
+// case where --max-filesize can't see the size in advance.
+var MAX_BYTES = 10485760
+
+// POSIX single-quote escaping: wrap in single quotes and turn any embedded
+// quote into '\''. Service URLs come from user config (customServices), so
+// they must never be interpolated into a shell line unescaped.
+function shArg(value) {
+  return "'" + String(value).replace(/'/g, "'\\''") + "'"
+}
+
 // AWS serves its public events feed as UTF-16; transcode before parsing.
 function fetchCommand(service) {
+  var api = shArg(service.api)
+  var fetch = "curl -fsS --max-filesize " + MAX_BYTES + " --max-time 8 " + api + " | head -c " + MAX_BYTES
   if (service.type === "aws")
-    return ["sh", "-c", "curl -fsS --max-time 8 '" + service.api + "' | iconv -f UTF-16 -t UTF-8"]
-  return ["curl", "-fsS", "--max-time", "8", service.api]
+    return ["sh", "-c", fetch + " | iconv -f UTF-16 -t UTF-8"]
+  return ["sh", "-c", fetch]
 }
 
 function indicatorSeverity(indicator) {
